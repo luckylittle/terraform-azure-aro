@@ -1,0 +1,80 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The geo-location where the resource lives"
+      }
+    },
+    "clusterName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the OpenShift cluster resource"
+      }
+    },
+    "clusterResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The ID of the cluster resource group (immutable)"
+      }
+    },
+    "tags": {
+      "type": "string",
+      "defaultValue": {
+        "owner"   : "lmaly",
+        "service" : "openshift",
+        "env"     : "nonprod"
+      },
+      "metadata": {
+        "description": "Resource tags"
+      }
+    },
+    "workerSubnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "he Azure resource ID of the worker subnet (immutable)"
+      }
+    },
+    "masterSubnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "The Azure resource ID of the master subnet (immutable)"
+      }
+    },
+    "pullSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The pull secret for the cluster (immutable)"
+      }
+    }
+  },
+  "variables": {
+    "tagsObject": "[base64(parameters('tags'))]"
+  },
+  "resources": [
+    {
+      "name": "[parameters('clusterName')]",
+      "type": "Microsoft.RedHatOpenShift/OpenShiftClusters",
+      "apiVersion": "2020-04-30",
+      "tags": "[base64ToJson(variables('tagsObject'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "clusterProfile": {
+          "pullSecret": "[parameters('pullSecret')]",
+          "resourceGroupId": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', parameters('clusterResourceGroupName'))]"
+        },
+        "masterProfile": {
+          "subnetId": "[parameters('masterSubnetId')]"
+        },
+        "workerProfiles": [
+          {
+            "name": "worker",
+            "subnetId": "[parameters('workerSubnetId')]"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -15,3 +15,7 @@ variable "location" {
   type        = string
   default     = "australiaeast"
 }
+
+variable "pull-secret" {
+  default = {}
+}

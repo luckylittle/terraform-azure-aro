@@ -9,7 +9,7 @@ This is a HashiCorp Terraform root module that spins up [Microsoft Azure Red Hat
 * MS Azure CLI v`2.15.1`
 * HashiCorp Terraform v`0.13.5`
 * HashiCorp Terraform AzureRM provider v`2.37.0`
-* Red Hat pull secret from [cloud.redhat.com](https://cloud.redhat.com) (OPTIONAL)
+* Red Hat pull secret from [cloud.redhat.com](https://cloud.redhat.com)
 
 ## AZURE INITIAL SETUP
 
