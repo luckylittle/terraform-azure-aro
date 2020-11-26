@@ -20,12 +20,18 @@
         "description": "The ID of the cluster resource group (immutable)"
       }
     },
+    "domain": {
+      "type": "string",
+      "metadata": {
+        "description": "The domain for the cluster (immutable)"
+      }
+    },
     "tags": {
       "type": "string",
       "defaultValue": {
         "owner"   : "lmaly",
         "service" : "openshift",
-        "env"     : "nonprod"
+        "env"     : ""
       },
       "metadata": {
         "description": "Resource tags"
@@ -34,13 +40,25 @@
     "workerSubnetId": {
       "type": "string",
       "metadata": {
-        "description": "he Azure resource ID of the worker subnet (immutable)"
+        "description": "The Azure resource ID of the worker subnet (immutable)"
       }
     },
     "masterSubnetId": {
       "type": "string",
       "metadata": {
         "description": "The Azure resource ID of the master subnet (immutable)"
+      }
+    },
+    "clientId": {
+      "type": "string",
+      "metadata": {
+        "description": "The client ID used for the cluster (immutable)"
+      }
+    },
+    "clientSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The client secret used for the cluster (immutable)"
       }
     },
     "pullSecret": {
@@ -61,17 +79,41 @@
       "tags": "[base64ToJson(variables('tagsObject'))]",
       "location": "[parameters('location')]",
       "properties": {
+        "consoleProfile": {
+        },
         "clusterProfile": {
           "pullSecret": "[parameters('pullSecret')]",
+          "domain": "[parameters('domain')]",
           "resourceGroupId": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', parameters('clusterResourceGroupName'))]"
         },
         "masterProfile": {
-          "subnetId": "[parameters('masterSubnetId')]"
+          "subnetId": "[parameters('masterSubnetId')]",
+          "vmSize": "Standard_D8s_v3"
         },
         "workerProfiles": [
           {
             "name": "worker",
-            "subnetId": "[parameters('workerSubnetId')]"
+            "subnetId": "[parameters('workerSubnetId')]",
+            "vmSize": "Standard_D4s_v3",
+            "diskSizeGB": 128,
+            "count": 3
+          }
+        ],
+        "servicePrincipalProfile": {
+          "clientId": "[parameters('clientId')]",
+          "clientSecret": "[parameters('clientSecret')]"
+        },
+        "networkProfile": {
+          "podCidr": "10.128.0.0/14",
+          "serviceCidr": "172.30.0.0/16"
+        },
+        "apiserverProfile": {
+          "visibility": "Public"
+        },
+        "ingressProfiles": [
+          {
+            "name": "default",
+            "visibility": "Public"
           }
         ]
       }

@@ -7,13 +7,16 @@ resource "azurerm_template_deployment" "aro-cluster" {
   template_body = file("${path.module}/ARM-openShiftClusters.json")
 
   parameters = {
-    "clusterResourceGroupName" = azurerm_resource_group.openshift-cluster.name
+    "clientId"                 = var.clientId
+    "clientSecret"             = var.clientSecret
     "clusterName"              = "openshift-cluster-${local.environment}"
+    "clusterResourceGroupName" = azurerm_resource_group.openshift-cluster.name
+    "domain"                   = local.domain_name
     "location"                 = var.location
-    "workerSubnetId"           = azurerm_subnet.worker-subnet.id
     "masterSubnetId"           = azurerm_subnet.master-subnet.id
-    "tags"                     = jsonencode(local.common_tags)
     "pullSecret"               = file("${path.module}/pull-secret.txt")
+    "tags"                     = jsonencode(local.common_tags)
+    "workerSubnetId"           = azurerm_subnet.worker-subnet.id
   }
 
   deployment_mode = "Incremental"
