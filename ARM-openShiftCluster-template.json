@@ -1,0 +1,51 @@
+{
+  "name": "string",
+  "type": "Microsoft.RedHatOpenShift/openShiftClusters",
+  "apiVersion": "2020-04-30",
+  "tags": {},
+  "location": "string",
+  "properties": {
+    "clusterProfile": {
+      "pullSecret": "string",
+      "domain": "string",
+      "version": "string",
+      "resourceGroupId": "string"
+    },
+    "consoleProfile": {
+      "url": "string"
+    },
+    "servicePrincipalProfile": {
+      "clientId": "string",
+      "clientSecret": "string"
+    },
+    "networkProfile": {
+      "podCidr": "string",
+      "serviceCidr": "string"
+    },
+    "masterProfile": {
+      "vmSize": "string",
+      "subnetId": "string"
+    },
+    "workerProfiles": [
+      {
+        "name": "string",
+        "vmSize": "string",
+        "diskSizeGB": "integer",
+        "subnetId": "string",
+        "count": "integer"
+      }
+    ],
+    "apiserverProfile": {
+      "visibility": "string",
+      "url": "string",
+      "ip": "string"
+    },
+    "ingressProfiles": [
+      {
+        "name": "string",
+        "visibility": "string",
+        "ip": "string"
+      }
+    ]
+  }
+}
