@@ -32,6 +32,7 @@ variable "client_secret" {
   description = "The Application Secret used by the Azure Red Hat OpenShift"
 }
 
+# az provider show --namespace Microsoft.RedHatOpenShift --query "id"
 variable "rp_object_id" {
   description = "The Resource Provider ID for Azure Red Hat OpenShift"
 }
