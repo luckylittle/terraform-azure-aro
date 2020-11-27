@@ -24,11 +24,11 @@ variable "client_object_id" {
   description = "The Application ID used by the Azure Red Hat OpenShift"
 }
 
-variable "client_id" {
+variable "clientId" {
   description = "The Application ID used by the Azure Red Hat OpenShift"
 }
 
-variable "client_secret" {
+variable "clientSecret" {
   description = "The Application Secret used by the Azure Red Hat OpenShift"
 }
 
