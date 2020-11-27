@@ -50,11 +50,11 @@ echo "Copy the generated values to backend.tf!"
 # Check the format of the *.tf files:
 terraform fmt
 
-# Create a new nonprod/prod/quay workspace:
-terraform workspace new <nonprod,prod,quay>
-
 # Initialize Terraform:
 terraform init
+
+# Create a new nonprod/prod/quay workspace:
+terraform workspace new <nonprod,prod,quay>
 
 # See what is Terraform planning to apply:
 terraform plan
