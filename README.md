@@ -1,68 +1,24 @@
-# TERRAFORM-AZURE-ARO
+# OpenShift Clients
 
-This is a HashiCorp Terraform root module that spins up [Microsoft Azure Red Hat OpenShift (ARO)](https://www.openshift.com/products/azure-openshift) cluster(s) using Terraform Workspaces.
+The OpenShift client `oc` simplifies working with Kubernetes and OpenShift
+clusters, offering a number of advantages over `kubectl` such as easy login,
+kube config file management, and access to developer tools. The `kubectl`
+binary is included alongside for when strict Kubernetes compliance is necessary.
 
-## PREREQUISITES
+To learn more about OpenShift, visit [docs.openshift.com](https://docs.openshift.com)
+and select the version of OpenShift you are using.
 
-* MS Azure account and subscription
-* Service and subscription limits (quotas) increase
-* MS Azure CLI v`2.15.1`
-* HashiCorp Terraform v`0.13.5`
-* HashiCorp Terraform AzureRM provider v`2.37.0`
-* Red Hat pull secret from [cloud.redhat.com](https://cloud.redhat.com)
+## Installing the tools
 
-## AZURE INITIAL SETUP
+After extracting this archive, move the `oc` and `kubectl` binaries
+to a location on your PATH such as `/usr/local/bin`. Then run:
 
-```bash
-# Authenticate to Azure using the Azure CLI (it redirects you to the default browser on your machine to log in):
-az login
+    oc login [API_URL]
 
-# List all available Azure regions and find the one closest to you:
-az account list-locations -o table
+to start a session against an OpenShift cluster. After login, run `oc` and
+`oc help` to learn more about how to get started with OpenShift.
 
-# Set the default region for Azure CLI:
-az config set defaults.location=australiaeast
+## License
 
-# If you have multiple Azure subscriptions, specify the relevant subscription ID:
-az account set --subscription <SUBSCRIPTION_ID>
-
-# Register the `Microsoft.RedHatOpenShift` resource provider:
-az provider register -n Microsoft.RedHatOpenShift --wait
-
-# Register the `Microsoft.Compute` resource provider:
-az provider register -n Microsoft.Compute --wait
-
-# Register the `Microsoft.Storage` resource provider:
-az provider register -n Microsoft.Storage --wait
-```
-
-## TERRAFORM STATE BACKEND INITIALIZATION
-
-```bash
-# Run only once! Create Azure storage backend used by Terraform to store the state file(s):
-./create_backend.sh
-echo "Copy the generated values to backend.tf!"
-```
-
-## HOW TO DEPLOY
-
-```bash
-# Check the format of the *.tf files:
-terraform fmt
-
-# Initialize Terraform:
-terraform init
-
-# Create a new nonprod/prod/quay workspace:
-terraform workspace new <nonprod,prod,quay>
-
-# See what is Terraform planning to apply:
-terraform plan
-
-# Create the resources:
-terraform apply -auto-approve
-```
-
-## LICENSE
-
-* MIT, [Lucian Maly](https://github.com/luckylittle) for [Red Hat, Inc.](https://redhat.com)
+OpenShift is licensed under the Apache Public License 2.0. The source code for this
+program is [located on github](https://github.com/openshift/origin).

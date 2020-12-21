@@ -1,0 +1,122 @@
+---
+- name: Grab some global cluster trivia for git to use
+  k8s_facts:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    api_version: config.openshift.io/v1
+    kind: Infrastructure
+    name: cluster
+  register: infradata
+
+- name: deploy infra-shared machinesets
+  vars:
+    instance_type: r5.xlarge
+    node_labels:
+    - infra
+    - infra-shared
+    zone_suffixes:
+      - a
+      - b
+      - c
+    name_identifier: infra-shared
+  include_role:
+    name: machineset
+
+- name: deploy infra-efk machinesets
+  vars:
+    instance_type: r5.xlarge
+    node_labels:
+    - infra
+    - infra-efk
+    zone_suffixes:
+      - a
+      - b
+      - c
+    name_identifier: infra-efk
+  include_role:
+    name: machineset
+# https://access.redhat.com/solutions/4233311
+- name: Set the default node selector to application - can be overridden with ns annotations
+  k8s:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    api_version: config.openshift.io/v1
+    merge_type: merge
+    kind: Scheduler
+    name: cluster
+    definition:
+      spec:
+        defaultNodeSelector: 'node-role.kubernetes.io/application='
+
+# https://docs.openshift.com/container-platform/4.3/machine_management/creating-infrastructure-machinesets.html#infrastructure-moving-router_creating-infrastructure-machinesets
+- name: Set the router node selector
+  k8s:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    api_version: operator.openshift.io/v1
+    merge_type: merge
+    kind: IngressController
+    name: default
+    namespace: openshift-ingress-operator
+    definition:
+      spec:
+        nodePlacement:
+          nodeSelector:
+            matchLabels:
+              node-role.kubernetes.io/infra-shared: ""
+
+# https://docs.openshift.com/container-platform/4.3/machine_management/creating-infrastructure-machinesets.html#infrastructure-moving-registry_creating-infrastructure-machinesets
+- name: Set the registry node selector
+  k8s:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    api_version: imageregistry.operator.openshift.io/v1
+    merge_type: merge
+    kind: Config
+    name: cluster
+    definition:
+      spec:
+        nodeSelector:
+          node-role.kubernetes.io/infra-shared: ""
+
+- name: Set ns annotations on infra projects so that defaultNodeSelector gets ignored by them
+  k8s:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    api_version: v1
+    kind: Namespace
+    name: "{{ namespace }}"
+    definition:
+      metadata:
+        annotations:
+          openshift.io/node-selector: "node-role.kubernetes.io/infra-shared="
+  loop_control:
+    loop_var: namespace
+  loop:
+    - openshift-ingress
+#    - openshift-ingress-operator  # Already overridden by operator
+#    - openshift-image-registry    # Already overridden by operator
+
+# https://access.redhat.com/solutions/4342791
+#- name: Define the infra machine config pool
+#  k8s:
+#    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+#    api_version: machineconfiguration.openshift.io/v1
+#    merge_type: merge
+#    kind: MachineConfigPool
+#    name: infra
+#    definition:
+#      spec:
+#        machineConfigSelector:
+#          matchExpressions:
+#            - {key: machineconfiguration.openshift.io/role, operator: In, values: [infra]}
+#        defaultNodeSelector: 'node-role.kubernetes.io/application=""'
+#- name: Define theinfra machine config 
+# apiVersion: machineconfiguration.openshift.io/v1
+# kind: MachineConfigPool
+# metadata:
+#   name: infra
+# spec:
+#   machineConfigSelector:
+#     matchExpressions:
+#       - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,infra]}
+#   nodeSelector:
+#     matchLabels:
+#       node-role.kubernetes.io/infra: ""
+#
+#
