@@ -1,10 +1,11 @@
-# Backend to store Terraform state file
-
+# Copy this file to 'backend.tf' and replace <reponame> with the name of this Azure DevOps git repository
 terraform {
-  backend "azurerm" {
-    resource_group_name  = ""
-    storage_account_name = ""
-    container_name       = ""
-    key                  = ""
+  backend "remote" {
+    hostname     = "terraform.ahunga.co.nz"
+    organization = "vfnz"
+
+    workspaces {
+      prefix = "azr-dx-integration-"
+    }
   }
 }

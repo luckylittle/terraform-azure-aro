@@ -1,0 +1,7 @@
+---
+# vars file for monitoring
+var_label: "node-role.kubernetes.io/infra-shared"
+var_prometheus_gp2_storage: 40Gi
+var_alertmanager_gp2_storage: 40Gi
+var_retention: 3d
+

@@ -1,0 +1,68 @@
+---
+# tasks file for efk
+- name: Deploy cluster logging
+  block:
+  - name: Create elastic search operator namespace
+    k8s:
+      kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+      name: "{{ operator_namespace }}"
+      api_version: v1
+      kind: Namespace
+      state: present
+
+  - name: Create elasticsearch namespace with ns annotation that ignores defaultNodeSelector
+    k8s:
+      kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+      name: "{{ logging_namespace }}"
+      api_version: v1
+      kind: Namespace
+      state: present
+      definition:
+        metadata:
+          annotations:
+            openshift.io/node-selector: ""
+
+  - name: Create operator group and subscription
+    k8s:
+      kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+      state: present
+      resource_definition: "{{ lookup('template', 'templates/operatorgroup.yaml.j2') }}"
+      validate_certs: no
+
+  - name: Ensure ClusterLogging CRD Exists Before Using It
+    command:  oc get crd clusterloggings.logging.openshift.io -n "{{ logging_namespace }}" --config "{{ lookup('env','KUBECONFIG') }}"
+    register: crds
+    retries: 10
+    until: '"clusterloggings.logging.openshift.io" in crds.stdout'
+    changed_when: false
+
+  - name: Create clusterlogging custom resource definition
+    k8s:
+      kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+      state: present
+      resource_definition: "{{ lookup('template', 'templates/clusterlogging-crd.yaml.j2') }}"
+      validate_certs: no
+
+  # https://docs.openshift.com/container-platform/4.3/logging/cluster-logging-moving-nodes.html
+  - name: Set the node selector used by EFK
+    k8s:
+      kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+      api_version: logging.openshift.io/v1
+      merge_type: merge
+      kind: ClusterLogging
+      name: instance
+      namespace: "{{ logging_namespace }}"
+      definition:
+        spec:
+          curation:
+            curator:
+              nodeSelector: 
+                node-role.kubernetes.io/infra-efk: ""
+          logStore:
+            elasticsearch:
+              nodeSelector: 
+                node-role.kubernetes.io/infra-efk: ""
+          visualization:
+            kibana:
+              nodeSelector: 
+                node-role.kubernetes.io/infra-efk: ""

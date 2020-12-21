@@ -1,0 +1,44 @@
+---
+# tasks file for quay
+- name: Create registry namespace
+  k8s:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    name: "{{ registry_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create AWS bucket
+  command: aws s3 mb --tags Key=component,Value=quay {{ registry_identifier }}
+  failed_when: result.rc == 1 and "BucketAlreadyOwnedByYou" not in result.stdout
+  register: result
+
+- name: Create RDS instance
+  command: |
+    echo aws rds create-db-cluster 
+    --availability-zones ap-southeast2-a,ap-southeast2-b,ap-southeast2-b 
+    --tags Key=component,Value=quay
+    --database-name {{ registry_identifier }}
+    --db-cluster-identifier {{ registry_identifier }}
+    --engine aurora-postgresql
+    --engine-version 11.5R
+    --engine-mode provisioned
+    --deletion-protection 
+
+- name: Create quay user and database
+  postgresql_user:
+    login_host: "{{ quay_rds_host }}"
+    login_user: "{{ quay_rds_admin_password }}"
+    db: quay
+    name: "{{ quay_rds_user }}"
+    password: "{{ quay_rds_password }}"
+    priv: "ALL"
+
+- meta:
+    halt: ~
+
+- name: Install QuayEcosystem
+  k8s:    
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    resource_definition: "{{ lookup('template', 'templates/quay.yaml.j2') }}"
+

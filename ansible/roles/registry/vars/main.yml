@@ -1,0 +1,12 @@
+---
+# vars file for quay
+operator_namespace: openshift-operators-redhat
+registry_namespace: registry
+
+subscription_channel: 4.3
+subscription_source: redhat-operators
+
+registry_identifier: "ocp-container-registry-v1-{{ var_cluster_name }}"
+registry_storage: "ocp-container-registry-v1-{{ var_cluster_name }}"
+registry_host: "v1-registry.{{ var_cluster_apps_domain }}"
+registry_config_host: "v1-config-registry.{{ var_cluster_apps_domain }}"

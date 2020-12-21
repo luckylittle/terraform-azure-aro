@@ -1,0 +1,6 @@
+---
+# vars file for efk
+operator_namespace: openshift-operators-redhat
+logging_namespace: openshift-logging
+subscription_channel: 4.3
+subscription_source: redhat-operators

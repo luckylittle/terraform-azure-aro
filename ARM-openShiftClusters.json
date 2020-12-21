@@ -74,7 +74,7 @@
   "resources": [
     {
       "name": "[parameters('clusterName')]",
-      "type": "Microsoft.RedHatOpenShift/OpenShiftClusters",
+      "type": "Microsoft.RedHatOpenShift/openShiftClusters",
       "apiVersion": "2020-04-30",
       "tags": "[base64ToJson(variables('tagsObject'))]",
       "location": "[parameters('location')]",
@@ -118,5 +118,11 @@
         ]
       }
     }
-  ]
+  ],
+  "outputs": {
+      "oauthCallbackURL": {
+          "type": "string",
+          "value": "[concat('https://oauth-openshift.apps.', parameters('domain'), '.', parameters('location'), '.aroapp.io/oauth2callback/AAD')]"
+      }
+  }
 }

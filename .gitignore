@@ -1,4 +1,7 @@
-.terraform/
+*.bak
+.terraform
+terraform.tfstate
+terraform.tfvars
 backend.tf
-pull-secret.txt
+backend.tf.template
 variables.tfvars
