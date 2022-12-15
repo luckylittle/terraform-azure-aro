@@ -1,0 +1,11 @@
+---
+- name: Deploy OpenShift cluster configuration
+  tasks:
+    - name: Run post install tasks
+      include_role:
+        name: "{{ item }}"
+      loop:
+        - ocp4-post
+        - efk
+        - monitoring
+

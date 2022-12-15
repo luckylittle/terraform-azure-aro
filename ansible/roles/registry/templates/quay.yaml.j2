@@ -1,0 +1,118 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redhat-quay-pull-secret
+  namespace: "{{ registry_namespace }}"
+data:
+  .dockerconfigjson: ewogICJhdXRocyI6IHsKICAgICJxdWF5LmlvIjogewogICAgICAiYXV0aCI6ICJjbVZrYUdGMEszRjFZWGs2VHpneFYxTklVbE5LVWpFMFZVRmFRa3MxTkVkUlNFcFRNRkF4VmpSRFRGZEJTbFl4V0RKRE5GTkVOMHRQTlRsRFVUbE9NMUpGTVRJMk1USllWVEZJVWc9PSIsCiAgICAgICJlbWFpbCI6ICIiCiAgICB9CiAgfQp9
+type: kubernetes.io/dockerconfigjson
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: quay-credentials
+  namespace: "{{ registry_namespace }}"
+stringData:
+  superuser-username: {{ quay_admin_user }}
+  superuser-password: {{ quay_admin_password }}
+  superuser-email: {{ var_cluster_email }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: quay-config-credentials
+  namespace: "{{ registry_namespace }}"
+stringData:
+  config-app-password: {{ quay_admin_password }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rds-credentials
+  namespace: "{{ registry_namespace }}"
+stringData:
+  database-name: quay
+  database-username: {{ quay_rds_user }}
+  database-password: {{ quay_rds_password }}
+  database-root-password: {{ quay_admin_password }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-credentials
+  namespace: "{{ registry_namespace }}"
+stringData:
+  accessKey: {{ aws_secret_access_key_id }}
+  secretKey: {{ aws_secret_access_key }}
+
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: registry-certificate
+  namespace: "{{ registry_namespace }}"
+spec:
+  secretName: registry-certificate
+  duration: 2160h #90d
+  renewBefore: 360h #15d
+  dnsNames:
+  - "*.{{ var_cluster_apps_domain }}"
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+
+---
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: quay-system-v1
+  namespace: "{{ registry_namespace }}"
+spec:
+  clair:
+    imagePullSecretName: redhat-quay-pull-secret
+    enabled: true
+  redis:
+    imagePullSecretName: redhat-quay-pull-secret
+  quay:
+    imagePullSecretName: redhat-quay-pull-secret
+
+    superuserCredentialsSecretName: quay-credentials
+    configSecretName: quay-config-credentials
+    sslCertificatesSecretName: registry-certificate
+
+    routeHost: {{ registry_host }}
+    configRouteHost: {{ registry_config_host }}
+    #configFiles:
+    #- secretName: quay-config
+
+    deploymentStrategy: Recreate
+    keepConfigDeployment: true
+
+    skipSetup: false
+
+    # Database
+    database:
+      #server: {{ quay_rds_host }}
+      credentialsSecretName: rds-credentials
+
+    # Storage
+    registryBackends:
+      #- name: local
+      #      local:
+      #  storagePath: /opt/quay
+    - name: s3
+      s3:
+        bucketName: {{ registry_storage }}
+        accessKey: {{ aws_secret_access_key_id }}
+        secretKey: {{ aws_secret_access_key }}
+        #credentialsSecretName: s3-credentials
+
+    envVars:
+    - name: DEBUGLOG
+      value: "true"
+

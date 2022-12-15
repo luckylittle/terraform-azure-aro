@@ -6,7 +6,7 @@ locals {
 
 locals {
   common_tags = {
-    owner   = "lmaly"
+    owner   = "tfe"
     service = "openshift"
     env     = local.environment
   }
@@ -14,4 +14,5 @@ locals {
 
 locals {
   domain_name = "redhat-vodafone-${local.environment}.com"
+  # example result: console-openshift-console.apps.redhat-vodafone-azr-dx-integration-dev.com
 }
